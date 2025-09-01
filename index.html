@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7-Day Meal Plan</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  />
+  <!-- Bootstrap Icons -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ---------- Palette (pleasant + accessible contrast) ---------- */
+    :root{
+      --bg-1:#f7f9ff;
+      --bg-2:#f4fff8;
+      --card:#ffffff;
+      --primary:#4f46e5;   /* indigo */
+      --accent-1:#06b6d4;  /* cyan */
+      --accent-2:#10b981;  /* green */
+      --accent-3:#f59e0b;  /* amber */
+      --accent-4:#ef4444;  /* red */
+      --ink-1:#1f2937;     /* slate-800 */
+      --ink-2:#6b7280;     /* slate-500 */
+      --ring:rgba(79,70,229,.25);
+      --radius:14px;
+    }
+    [data-bs-theme="dark"] :root{
+      --bg-1:#0d111a;
+      --bg-2:#0b1612;
+      --card:#0f1420;
+      --ink-1:#e5e7eb;
+      --ink-2:#9aa3b2;
+      --ring:rgba(59,130,246,.25);
+    }
+
+    body{
+      background:
+        radial-gradient(900px 500px at -10% -10%, var(--bg-1), transparent 60%),
+        radial-gradient(900px 500px at 110% 0%, var(--bg-2), transparent 55%),
+        linear-gradient(180deg, #fff0, #fff0 40%, #fff0);
+      min-height:100dvh;
+      color:var(--ink-1);
+    }
+
+    /* Navbar */
+    .brand-badge{font-weight:700;letter-spacing:.3px}
+    .toolbar .btn{border-radius:999px}
+
+    /* Reusable box */
+    .boxed{
+      border:1px solid var(--bs-border-color);
+      border-radius:var(--radius);
+      background:var(--card);
+      box-shadow:0 10px 24px rgba(0,0,0,.06);
+    }
+
+    /* Day header gradients rotate */
+    .day-head{
+      border-top-left-radius:var(--radius);
+      border-top-right-radius:var(--radius);
+      color:#fff;
+      padding:.9rem 1rem;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .day-1{background:linear-gradient(135deg, var(--primary), #7c3aed)}
+    .day-2{background:linear-gradient(135deg, var(--accent-1), #3b82f6)}
+    .day-3{background:linear-gradient(135deg, var(--accent-2), #22c55e)}
+    .day-4{background:linear-gradient(135deg, var(--accent-3), #f97316)}
+    .day-5{background:linear-gradient(135deg, var(--accent-4), #f43f5e)}
+    .day-6{background:linear-gradient(135deg, #8b5cf6, #06b6d4)}
+    .day-7{background:linear-gradient(135deg, #0ea5e9, #10b981)}
+    .day-index{font-weight:700;letter-spacing:.3px}
+
+    .day-card{transition:transform .15s ease, box-shadow .15s ease}
+    .day-card:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(0,0,0,.10)}
+
+    /* Meal badges by type */
+    .badge-time{font-weight:600;letter-spacing:.2px}
+    .badge-breakfast{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+    .badge-snack{background:#ecfeff;color:#155e75;border:1px solid #a5f3fc}
+    .badge-lunch{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+    .badge-dinner{background:#fff7ed;color:#92400e;border:1px solid #fed7aa}
+
+    .meal-title{min-width:7.25rem;display:inline-block}
+    @media (max-width:575.98px){.meal-title{min-width:0;display:block;margin-bottom:.25rem}}
+
+    .icon-dot{font-size:.95rem;vertical-align:middle}
+    .veg{color:#16a34a}.mixed{color:#f59e0b}
+
+    /* Fancy focus */
+    .btn:focus, .form-control:focus, .form-select:focus{
+      box-shadow:0 0 0 .25rem var(--ring);
+    }
+
+    /* Table accents */
+    .table thead th{border-top:none}
+    .table-primary{--bs-table-bg:#eef2ff;--bs-table-color:#1f2937}
+
+    /* Print */
+    @media print{
+      .no-print{display:none!important}
+      .boxed{box-shadow:none!important}
+      .day-card{break-inside:avoid}
+      body{background:#fff!important}
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-md bg-body border-bottom sticky-top">
+    <div class="container-lg">
+      <a class="navbar-brand brand-badge" href="#">
+        <i class="bi bi-calendar4-week me-2"></i>7-Day Meal Plan
+      </a>
+
+      <div class="ms-auto d-flex align-items-center gap-2 toolbar no-print">
+        <div class="btn-group" role="group" aria-label="View toggle">
+          <button id="btnCards" class="btn btn-outline-primary btn-sm active" aria-pressed="true" title="Cards view">
+            <i class="bi bi-grid-3x3-gap"></i> Cards
+          </button>
+          <button id="btnTable" class="btn btn-outline-secondary btn-sm" aria-pressed="false" title="Table view">
+            <i class="bi bi-table"></i> Table
+          </button>
+        </div>
+        <button id="btnTheme" class="btn btn-outline-secondary btn-sm" title="Toggle theme" aria-pressed="false">
+          <i class="bi bi-moon-stars"></i>
+        </button>
+        <button onclick="window.print()" class="btn btn-primary btn-sm" title="Print">
+          <i class="bi bi-printer"></i> Print
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-lg my-4">
+    <!-- Tip -->
+    <div class="boxed p-3 p-md-4 mb-4">
+      <div class="d-flex gap-3 align-items-start">
+        <div class="fs-3 lh-1 pt-1">💧</div>
+        <div>
+          <div class="fw-semibold mb-1">Quick tip</div>
+          <div class="text-body-secondary">
+            Stay hydrated (8–10 glasses/day). Adjust portions to your activity level.
+            Swap egg/fish with soy/paneer for a full-veg plan.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="boxed p-3 p-md-4 mb-4 no-print">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="search" class="form-label mb-1">Search meals</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="search" class="form-control" type="search" placeholder="e.g. oats, paneer, dal…" />
+          </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <label for="mealType" class="form-label mb-1">Meal</label>
+          <select id="mealType" class="form-select">
+            <option value="">All</option>
+            <option>Breakfast</option>
+            <option>Snack</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <label for="vegToggle" class="form-label mb-1">Preference</label>
+          <select id="vegToggle" class="form-select">
+            <option value="mixed">Mixed</option>
+            <option value="veg">Vegetarian</option>
+          </select>
+        </div>
+        <div class="col-12 col-lg-4 d-flex gap-2">
+          <button id="clearFilters" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-x-circle"></i> Clear
+          </button>
+          <button id="expandAll" class="btn btn-outline-primary w-100" data-expanded="false">
+            <i class="bi bi-arrows-expand"></i> Expand all
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards View -->
+    <section id="cardsView" class="view-section">
+      <div id="cardsGrid" class="row g-3"></div>
+    </section>
+
+    <!-- Table View -->
+    <section id="tableView" class="view-section" hidden>
+      <div class="table-responsive boxed">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead class="table-primary">
+            <tr>
+              <th>Time</th>
+              <th>Day 1</th>
+              <th>Day 2</th>
+              <th>Day 3</th>
+              <th>Day 4</th>
+              <th>Day 5</th>
+              <th>Day 6</th>
+              <th>Day 7</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container-lg my-4 text-center text-body-secondary small">
+    © <span id="year"></span> Meal Planner
+  </footer>
+
+  <!-- Bootstrap Bundle -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous">
+  </script>
+
+  <script>
+    /* ----------------------- Data ----------------------- */
+    const PLAN = [
+      { day:1, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"Moong dal chilla with paneer + toned milk", veg:true},
+        {time:"10:30 am", type:"Snack", text:"Apple slices + 5 almonds", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"2 chapatis + dal + bhindi + salad", veg:true},
+        {time:"4:30 pm", type:"Snack", text:"Sprouted moong chaat", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Vegetable khichdi + curd", veg:true},
+      ]},
+      { day:2, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"Vegetable upma with peanuts + buttermilk", veg:true},
+        {time:"10:30 am", type:"Snack", text:"Banana + 2 walnuts", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"2 phulkas + rajma curry + cucumber salad", veg:true},
+        {time:"4:30 pm", type:"Snack", text:"Roasted chana + guava", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Oats dosa + chutney + veg soup", veg:true},
+      ]},
+      { day:3, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"2 boiled eggs (or paneer bhurji) + whole wheat toast + milk", veg:false},
+        {time:"10:30 am", type:"Snack", text:"Papaya + 5 pistachios", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"2 chapatis + chicken curry (or soy curry) + beans", veg:false},
+        {time:"4:30 pm", type:"Snack", text:"Corn with lemon + masala", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Veg dalia + salad", veg:true},
+      ]},
+      { day:4, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"Ragi porridge + 1 boiled egg", veg:false},
+        {time:"10:30 am", type:"Snack", text:"Orange + 5 almonds", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"2 chapatis + chana dal + lauki + curd", veg:true},
+        {time:"4:30 pm", type:"Snack", text:"Paneer cubes sautéed with veggies", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Idli + sambhar + chutney", veg:true},
+      ]},
+      { day:5, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"Poha with peanuts + milk", veg:true},
+        {time:"10:30 am", type:"Snack", text:"Pomegranate + 2 walnuts", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"Brown rice + sambar + beetroot stir fry", veg:true},
+        {time:"4:30 pm", type:"Snack", text:"Boiled chana chaat", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Veg paratha (wheat + palak) + curd", veg:true},
+      ]},
+      { day:6, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"Vegetable oats porridge + boiled egg (or paneer cubes)", veg:false},
+        {time:"10:30 am", type:"Snack", text:"Apple slices + peanut butter", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"2 phulkas + fish curry (or soy curry) + cabbage sabzi", veg:false},
+        {time:"4:30 pm", type:"Snack", text:"Sprouted moong salad", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Quinoa pulao + cucumber raita", veg:true},
+      ]},
+      { day:7, items:[
+        {time:"7:30–8:00 am", type:"Breakfast", text:"Besan chilla + mint chutney + milk", veg:true},
+        {time:"10:30 am", type:"Snack", text:"Seasonal fruit + 5 almonds", veg:true},
+        {time:"1:00 pm", type:"Lunch", text:"2 chapatis + dal tadka + bhindi + salad", veg:true},
+        {time:"4:30 pm", type:"Snack", text:"Paneer tikka (grilled) / roasted soya chunks", veg:true},
+        {time:"7:30–8:00 pm", type:"Dinner", text:"Veg upma + tomato rasam", veg:true},
+      ]},
+    ];
+
+    /* ----------------------- Icons + badge class per meal ----------------------- */
+    const MEAL_ICON = {
+      Breakfast: '<i class="bi bi-cup-hot me-1"></i>',
+      Snack:     '<i class="bi bi-apple me-1"></i>',
+      Lunch:     '<i class="bi bi-egg-fried me-1"></i>',
+      Dinner:    '<i class="bi bi-moon-stars me-1"></i>',
+    };
+    const MEAL_BADGE = {
+      Breakfast: 'badge-breakfast',
+      Snack:     'badge-snack',
+      Lunch:     'badge-lunch',
+      Dinner:    'badge-dinner',
+    };
+
+    const $ = (s)=>document.querySelector(s);
+    const $$ = (s)=>Array.from(document.querySelectorAll(s));
+
+    /* ----------------------- Render: Cards ----------------------- */
+    function renderCards(data){
+      const grid = $('#cardsGrid');
+      grid.innerHTML = '';
+      data.forEach(d=>{
+        const col = document.createElement('div');
+        col.className = 'col-12 col-md-6 col-lg-4';
+
+        const card = document.createElement('div');
+        card.className = 'day-card boxed h-100 overflow-hidden';
+
+        // Header
+        const head = document.createElement('div');
+        head.className = `day-head day-${d.day}`;
+        head.innerHTML = `
+          <div class="day-index"><i class="bi bi-calendar-event me-2"></i>Day ${d.day}</div>
+          <button class="btn btn-sm btn-light-subtle text-white border-0 toggle-day" data-bs-toggle="collapse" data-bs-target="#day${d.day}Body" aria-expanded="true" title="Collapse/Expand">
+            <i class="bi bi-chevron-up"></i>
+          </button>
+        `;
+
+        // Body
+        const body = document.createElement('div');
+        body.id = `day${d.day}Body`;
+        body.className = 'collapse show';
+        const list = document.createElement('div');
+        list.className = 'list-group list-group-flush';
+
+        d.items.forEach(it=>{
+          const li = document.createElement('div');
+          li.className = 'list-group-item';
+          li.innerHTML = `
+            <span class="badge badge-time ${MEAL_BADGE[it.type]}">
+              ${MEAL_ICON[it.type] || ''}${it.time}
+            </span>
+            <div class="mt-2">
+              <span class="meal-title fw-semibold">${it.type}:</span>
+              <span>${it.text}</span>
+              ${it.veg
+                ? '<i class="bi bi-dot icon-dot veg" title="Vegetarian"></i>'
+                : '<i class="bi bi-dot icon-dot mixed" title="Includes non-veg option"></i>'}
+            </div>
+          `;
+          list.appendChild(li);
+        });
+
+        body.appendChild(list);
+        card.appendChild(head);
+        card.appendChild(body);
+        col.appendChild(card);
+        grid.appendChild(col);
+      });
+
+      // Toggle icons
+      $$('.toggle-day').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const icon = btn.querySelector('i');
+          const target = $(btn.getAttribute('data-bs-target'));
+          target.addEventListener('shown.bs.collapse', ()=> icon.className='bi bi-chevron-up');
+          target.addEventListener('hidden.bs.collapse', ()=> icon.className='bi bi-chevron-down');
+        });
+      });
+    }
+
+    /* ----------------------- Render: Table ----------------------- */
+    function renderTable(data){
+      const map = {};
+      data.forEach(d=>d.items.forEach(it=>{
+        const key = `${it.time} (${it.type})`;
+        (map[key] ||= {})[`Day ${d.day}`] = it.text;
+      }));
+
+      const order = [
+        "7:30–8:00 am (Breakfast)",
+        "10:30 am (Snack)",
+        "1:00 pm (Lunch)",
+        "4:30 pm (Snack)",
+        "7:30–8:00 pm (Dinner)"
+      ];
+
+      const tbody = $('#tableBody');
+      tbody.innerHTML = '';
+      order.forEach(rowKey=>{
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.scope='row';
+        th.innerHTML = rowKey
+          .replace('(Breakfast)', '<span class="ms-2 badge badge-breakfast">Breakfast</span>')
+          .replace('(Snack)',     '<span class="ms-2 badge badge-snack">Snack</span>')
+          .replace('(Lunch)',     '<span class="ms-2 badge badge-lunch">Lunch</span>')
+          .replace('(Dinner)',    '<span class="ms-2 badge badge-dinner">Dinner</span>');
+        tr.appendChild(th);
+
+        for(let d=1; d<=7; d++){
+          const td = document.createElement('td');
+          td.textContent = (map[rowKey] && map[rowKey][`Day ${d}`]) ? map[rowKey][`Day ${d}`] : '—';
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* ----------------------- Filters ----------------------- */
+    function applyFilters(){
+      const q = $('#search').value.trim().toLowerCase();
+      const meal = $('#mealType').value;
+      const pref = $('#vegToggle').value; // mixed | veg
+      const filtered = PLAN.map(day=>({
+        ...day,
+        items: day.items.filter(it=>{
+          const qMatch = !q || it.text.toLowerCase().includes(q) || it.type.toLowerCase().includes(q);
+          const mMatch = !meal || it.type === meal;
+          const pMatch = (pref==='veg') ? it.veg : true;
+          return qMatch && mMatch && pMatch;
+        })
+      }));
+      renderCards(filtered);
+      renderTable(filtered);
+    }
+
+    /* ----------------------- View toggles ----------------------- */
+    const cardsView = document.getElementById('cardsView');
+    const tableView = document.getElementById('tableView');
+    const btnCards  = document.getElementById('btnCards');
+    const btnTable  = document.getElementById('btnTable');
+
+    function setActive(on, off){
+      on.classList.remove('btn-outline-secondary','btn-outline-primary');
+      on.classList.add('btn-primary','active'); on.setAttribute('aria-pressed','true');
+      off.classList.remove('btn-primary','active');
+      off.classList.add('btn-outline-secondary'); off.setAttribute('aria-pressed','false');
+    }
+    btnCards.addEventListener('click',()=>{cardsView.hidden=false;tableView.hidden=true;setActive(btnCards,btnTable)});
+    btnTable.addEventListener('click',()=>{cardsView.hidden=true;tableView.hidden=false;setActive(btnTable,btnCards)});
+
+    // Expand/collapse all
+    document.getElementById('expandAll').addEventListener('click', function(){
+      const expanded = this.getAttribute('data-expanded')==='true';
+      document.querySelectorAll('.collapse').forEach(c=>{
+        const inst = bootstrap.Collapse.getOrCreateInstance(c,{toggle:false});
+        if(expanded) inst.show(); else inst.hide();
+      });
+      this.setAttribute('data-expanded', (!expanded).toString());
+      this.innerHTML = (!expanded)
+        ? '<i class="bi bi-arrows-collapse"></i> Collapse all'
+        : '<i class="bi bi-arrows-expand"></i> Expand all';
+    });
+
+    // Filters
+    ['#search','#mealType','#vegToggle'].forEach(s=>{
+      document.querySelector(s).addEventListener('input',applyFilters);
+      document.querySelector(s).addEventListener('change',applyFilters);
+    });
+    document.getElementById('clearFilters').addEventListener('click', ()=>{
+      $('#search').value=''; $('#mealType').value=''; $('#vegToggle').value='mixed'; applyFilters();
+    });
+
+    /* ----------------------- Theme toggle ----------------------- */
+    const btnTheme = document.getElementById('btnTheme');
+    const KEY='mealplan-theme';
+    function setTheme(t){
+      document.documentElement.setAttribute('data-bs-theme', t);
+      btnTheme.setAttribute('aria-pressed', t==='dark' ? 'true':'false');
+      btnTheme.innerHTML = t==='dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+      localStorage.setItem(KEY,t);
+    }
+    btnTheme.addEventListener('click', ()=>{
+      const cur = document.documentElement.getAttribute('data-bs-theme')||'light';
+      setTheme(cur==='light'?'dark':'light');
+    });
+    const saved = localStorage.getItem(KEY); if(saved) setTheme(saved);
+
+    /* ----------------------- Boot ----------------------- */
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderCards(PLAN); renderTable(PLAN);
+  </script>
+</body>
+</html>
